@@ -4,12 +4,12 @@ const db = require('../models/db');
 
 // Validación básica
 function validarFactura(data) {
-  const { fecha, proveedor, categoria, monto_sin_itbms, itbms } = data;
-  if (!fecha || !proveedor || !categoria || monto_sin_itbms == null || itbms == null) {
+  const { fecha, proveedor, categoria, subtotal, itbms } = data;
+  if (!fecha || !proveedor || !categoria || subtotal == null || itbms == null) {
     return 'Todos los campos son obligatorios.';
   }
-  if (isNaN(monto_sin_itbms) || monto_sin_itbms < 0) {
-    return 'Monto sin ITBMS debe ser un número válido y positivo.';
+  if (isNaN(subtotal) || subtotal < 0) {
+    return 'El subtotal debe ser un número válido y positivo.';
   }
   if (isNaN(itbms) || itbms < 0) {
     return 'ITBMS debe ser un número válido y positivo.';
@@ -46,15 +46,15 @@ router.post('/', async (req, res) => {
   const error = validarFactura(req.body);
   if (error) return res.status(400).json({ error });
 
-  const { fecha, proveedor, categoria, monto_sin_itbms, itbms } = req.body;
+  const { fecha, proveedor, categoria, subtotal, itbms } = req.body;
 
   try {
     const result = await db.query(
         `INSERT INTO facturas 
-        (fecha, proveedor, categoria, monto_sin_itbms, itbms)
-        VALUES ($1, $2, $3, $4, $5)
+        (fecha, proveedor, categoria, subtotal, itbms)
+        VALUES (TO_DATE($1,'DD-MM-YYYY'), $2, $3, $4, $5)
         RETURNING *`,
-      [fecha, proveedor, categoria, monto_sin_itbms, itbms]
+      [fecha, proveedor, categoria, subtotal, itbms]
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
@@ -69,15 +69,15 @@ router.put('/:id', async (req, res) => {
   const error = validarFactura(req.body);
   if (error) return res.status(400).json({ error });
 
-  const { fecha, proveedor, categoria, monto_sin_itbms, itbms } = req.body;
+  const { fecha, proveedor, categoria, subtotal, itbms } = req.body;
 
   try {
     const result = await db.query(
         `UPDATE facturas SET
-        fecha = $1, proveedor = $2, categoria = $3, monto_sin_itbms = $4, itbms = $5
+        fecha = TO DATE ($1, 'DD-MM-YYYY), proveedor = $2, categoria = $3, subtotal = $4, itbms = $5
         WHERE id = $6
         RETURNING *`,
-      [fecha, proveedor, categoria, monto_sin_itbms, itbms, id]
+      [fecha, proveedor, categoria, subtotal, itbms, id]
     );
 
     if (result.rows.length === 0) return res.status(404).json({ error: 'Factura no encontrada' });

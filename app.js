@@ -43,5 +43,19 @@ app.use('/api/facturas', facturasRoutes);
 
 // Inicio del servidor y escucha en el puerto especificado
 app.listen(port, () => {
-    console.log(`Servidor corriendo en puerto ${port}`);
+  // Aquí mostramos la IP local y el puerto
+  const os = require('os');
+  const interfaces = os.networkInterfaces();
+  let direccionIP = 'localhost';
+
+  // Buscar la IP IPv4 no interna (que suele ser la IP local en la red)
+  for (const nombre of Object.keys(interfaces)) {
+    for (const iface of interfaces[nombre]) {
+      if (iface.family === 'IPv4' && !iface.internal) {
+        direccionIP = iface.address;
+      }
+    }
+  }
+
+  console.log(`Servidor corriendo en http://${direccionIP}:${port}`);
 });
